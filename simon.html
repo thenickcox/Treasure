@@ -133,7 +133,7 @@
                 bottom: newY + entitySize
             };
 
-            if (collisionCheck(newRect, enemyRect)) {
+            if (collisionCheck(characterRect, enemyRect)) {
                 alert("Game Over!");
                 gameOver = true;
                 location.reload();
