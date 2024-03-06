@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid-based Game</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5dc;
+    }
+    #game {
+        width: 700px;
+        height: 700px;
+        margin: 50px auto;
+        position: relative;
+        background-color: #fff;
+    }
+    .entity {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+    }
+    #character {
+        background-color: blue;
+    }
+    #treasure {
+        background-color: green;
+    }
+    #enemy {
+        background-color: red;
+    }
+    .obstacle {
+        background-color: black;
+    }
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const game = document.getElementById("game");
+        const gridSize = 700;
+        const entitySize = 50;
+        const numObstacles = Math.floor(Math.random() * 6) + 10; // Random number of obstacles between 10 and 15
+        const characterStep = 10; // Adjust movement step here
+        let gameOver = false;
+
+        function createEntity(id, className) {
+            const entity = document.createElement("div");
+            entity.id = id;
+            entity.className = "entity " + className;
+            game.appendChild(entity);
+            return entity;
+        }
+
+        function placeEntity(entity) {
+            const x = Math.floor(Math.random() * (gridSize - entitySize));
+            const y = Math.floor(Math.random() * (gridSize - entitySize));
+            entity.style.left = x + "px";
+            entity.style.top = y + "px";
+        }
+
+        const character = createEntity("character", "character");
+        const treasure = createEntity("treasure", "treasure");
+        const enemy = createEntity("enemy", "enemy");
+
+        placeEntity(character);
+        placeEntity(treasure);
+        placeEntity(enemy);
+
+        for (let i = 0; i < numObstacles; i++) {
+            const obstacle = createEntity("obstacle" + i, "obstacle");
+            placeEntity(obstacle);
+        }
+
+        document.addEventListener("keydown", function(event) {
+            if (gameOver) return; // Don't move if the game is over
+            const key = event.key;
+            let newX = parseFloat(character.style.left) || 0;
+            let newY = parseFloat(character.style.top) || 0;
+
+            switch(key) {
+                case "ArrowUp":
+                    newY -= characterStep;
+                    break;
+                case "ArrowDown":
+                    newY += characterStep;
+                    break;
+                case "ArrowLeft":
+                    newX -= characterStep;
+                    break;
+                case "ArrowRight":
+                    newX += characterStep;
+                    break;
+            }
+
+            // Move character
+            if (newX >= 0 && newX <= gridSize - entitySize && newY >= 0 && newY <= gridSize - entitySize) {
+                character.style.left = newX + "px";
+                character.style.top = newY + "px";
+            }
+
+            // Check for collision with enemy, obstacles, or treasure
+            const characterRect = character.getBoundingClientRect();
+            const enemyRect = enemy.getBoundingClientRect();
+            const treasureRect = treasure.getBoundingClientRect();
+            const obstacles = document.getElementsByClassName("obstacle");
+            const newRect = {
+                left: newX,
+                top: newY,
+                right: newX + entitySize,
+                bottom: newY + entitySize
+            };
+
+            if (collisionCheck(newRect, enemyRect)) {
+                alert("Game Over!");
+                location.reload();
+            }
+
+            for (const obstacle of obstacles) {
+                const obstacleRect = obstacle.getBoundingClientRect();
+                if (collisionCheck(newRect, obstacleRect)) {
+                    return; // Don't move if collision detected
+                }
+            }
+
+            if (collisionCheck(newRect, treasureRect)) {
+                alert("You win!");
+                gameOver = true; // Set game over flag
+            }
+        });
+
+        function collisionCheck(rect1, rect2) {
+            return rect1.left < rect2.right && rect1.right > rect2.left &&
+                rect1.top < rect2.bottom && rect1.bottom > rect2.top;
+        }
+
+        // Game loop
+        function gameLoop() {
+            if (gameOver) return; // Stop game loop if the game is over
+            const characterRect = character.getBoundingClientRect();
+            const treasureRect = treasure.getBoundingClientRect();
+
+            if (collisionCheck(characterRect, treasureRect)) {
+                alert("You win!");
+                gameOver = true; // Set game over flag
+		window.location.reload();
+            }
+
+            // Update game state here if necessary
+
+            // Render game entities
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop
+        gameLoop();
+    });
+</script>
+</head>
+<body>
+
+<div id="game"></div>
+
+</body>
+</html>
+
